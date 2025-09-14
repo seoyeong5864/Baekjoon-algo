@@ -1,84 +1,57 @@
-import java.util.Scanner;
+
+import java.util.*;
 
 public class Solution {
-	
-	static int N;
-	static int[][] board;
-	static int ans;
-			
-	public static void main(String[] args) {
-		Scanner sc = new Scanner(System.in);
-		
-		// 퀸 N개를 서로 공격할 수 없도록 놓는 경우의 수
-		// 같은 행, 열, 대각선 위의 말을 공격할 수 있음
-		
-		int T = sc.nextInt();
-		
-		for(int tc = 1; tc <= T; tc++) {
-			
-			N = sc.nextInt();
-			
-			// 말을 놓은 위치 확인
-			board = new int[N][N];
-			
-			ans = 0; // 경우의 수 카운트
-			
-			// 0번째 row부터 확인 시작
-			nqueen(0);
-			
-			
-			// 출력
-			System.out.println("#"+tc+" "+ans);
-		}
-	}
+    static int N;
+    static boolean[] col;    // 열 사용 여부: col[j] == true면 열 j에 퀸 있음
+    static boolean[] diag1;  // 대각선 사용 여부: 인덱스 (i - j + N - 1)
+    static boolean[] diag2;  // 대각선 사용 여부: 인덱스 (i + j)
+    static long count;       // 해의 개수 (N이 커지면 long 권장)
+        
 
-	
-	// row = 현재 확인하고 있는 row
-	// 한 줄씩 내려가면서 말을 두자
-	private static void nqueen(int row) {
-		
-		// N개의 row를 전부 채우면 => 한가지 경우의 수 완성
-		if(row == N) {
-			ans++;
-			return;
-		}
-		
-		// 각 row의 모든 col에 대해서 확인
-		for(int col = 0; col < N; col++) {
-			if(isPossible(row, col)) {
-				board[row][col]++; // 말 놓기
-				nqueen(row+1); // 다음 row 호출
-				board[row][col]--; // 되돌리기
-			}
-		}
-	}
-	
-	// 말을 둘 수 있는 곳인지 확인
-	// 바로 위에 row 확인
-	private static boolean isPossible(int r, int c) {
-		// 바로 위쪽에 말이 있는지 확인
-		for(int i = 0; i < r; i++) {
-			if(board[i][c] == 1) {
-				return false;
-			}
-		}
-		
-		// 왼쪽 위 대각선 확인
-		for(int i = r - 1, j = c - 1; i >= 0 && j >= 0; i--, j--) {
-			if(board[i][j] == 1) {
-				return false;
-			}
-		}
-		
-		// 오른쪽 위 대각선 확인
-		for(int i = r - 1, j = c + 1; i >= 0 && j < N; i--, j++) {
-			if(board[i][j] == 1) {
-				return false;
-			}
-		}
-		// 위의 3가지 경우에 해당되지 않으면 말을 놓을 수 있음
-		return true; 
-	}
-	
-	
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        
+        int T = sc.nextInt();
+        for(int tc = 1; tc <= T; tc++) {
+        	N = sc.nextInt();
+
+            col   = new boolean[N];
+            diag1 = new boolean[2 * N - 1];
+            diag2 = new boolean[2 * N - 1];
+            count = 0;
+            dfs(0);  // 0번째 행부터 시작
+
+            System.out.println("#" + tc + " " + count);
+        }
+    }
+
+    // i: 현재 배치할 행(0 ~ N-1)
+    static void dfs(int i) {
+    	
+    	// 모든 행에 배치 완료 => 해 1개 완성
+        if (i == N) {
+            count++;
+            return;
+        }
+
+        
+        for (int j = 0; j < N; j++) {
+            int d1 = i - j + (N - 1); //(음수값 막기 위해서)
+            int d2 = i + j;        
+
+            // 같은 열 or 대각선에 이미 퀸이 있으면 스킵
+            if (col[j] || diag1[d1] || diag2[d2]) continue;
+
+            // (i, j)에 퀸을 놓는다 =>  사용 표시
+            col[j] = diag1[d1] = diag2[d2] = true;
+
+            // 다음 행으로
+            dfs(i + 1);
+
+            // 되돌리기(백트래킹)
+            col[j] = diag1[d1] = diag2[d2] = false;
+        }
+    }
+
 }
